@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="../css/reveal.css">
+		<link rel="stylesheet" href="../css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown data-separator="^\n---$" data-separator-vertical="^\n>>>$">
+					<script type="text/template">
+					### Terraform 使いません？？
+					~~ GUIでぽちぽちするのやめようぜ編 ~~
+
+					---
+
+					### その前に・・・
+
+					>>>
+					「このスライドなんやねん、PPTちゃうんかい」
+
+					>>>
+					### Reveal.js
+					- スライドを作成するためのフレームワーク  
+					- HTML/Markdownを利用して簡単かつ短時間でスライドが作成が可能
+					
+					##### Sample Code
+					~~~
+					# Hello!!
+					## Hello!!
+					- hello1
+					- hello2
+					- hello3
+
+
+					~~~
+
+					>>>
+					
+					# Hello!!
+					## Hello!!
+					- hello1
+					- hello2
+					- hello3
+
+					>>>
+
+					※当然、クライアントへ提出するのは難しいので　内部勉強会だったりで使ってみるとも良いかと。
+
+
+					>>>
+					### 利用方法
+					1. 資源取得
+					~~~
+					git clone https://github.com/hakimel/reveal.js.git
+					~~~
+
+					2. 取得した資源のindex.html内にMarkdown/htmlでスライドの内容記載
+					
+					---
+					### 現行運用の問題
+
+					>>>
+					
+					#### GUI操作に依存した手順書はヤバイ 
+					- 「画面をクリックして選択」という操作はオペミスが発生しやすい。
+					- 本番作業中に多くの操作が必要となるため、作業者及びクロスチェッカに大きな負担がかかる。当然作業量に比例して作業ミスの可能性も上がる。
+					- Evidence取得に大量の画面キャプチャを撮る必要があり、非常に非効率。
+					
+					>>>
+					
+					#### GUI操作に依存した手順書はヤバイ 続き
+					- GUIがプロバイダ都合で頻繁にアップデートされるため、手順の流用が困難。レビュアー/レビュイーも毎回ログインして確認する必要がある。(AWS/Akamaiとか本当に多い)
+					- 仮にオフショア使うってなったら「エクセルで手順作って」とかアウトソースできるのか。
+
+					---
+					
+					### Terraformを用いてコードでデプロイを自動化しよう！！
+					
+					---
+					### Terraform とは
+
+					HashiCorp社が作成したインフラ構築ツール(OSS)
+					- コードで記載された資源をデプロイすることでサーバやネットワークが作成可能
+					- 複数のパブリッククラウドに対応(AWS/GCP/Azure/Heroku)
+					- "Accenture New IT"でも紹介された、所謂**infrastructure as code**というインフラをコードで管理しようっていう考えの下に生まれたツール
+
+
+					---
+					### 最後に・・・
+
+					>>>
+					「どーせこんなの使わないっしょ？？」  
+					と思ってるみなさん。
+
+					>>>
+					#### 二年前 とあるチーミでのプレゼン
+					岩田君「これからはAWSガンガン使う時代くるからみんな覚えておこうぜ！」  
+					メンバー「現クライアントは基本オンプレだからこんなん知っても意味なくね？」
+
+					#### これからドンドン使おうとしている。
+					
+					>>>
+					インフラエンジニアも
+
+
+					</script>
+				</section>
+			</div>
+		</div>
+
+		<script src="../lib/js/head.min.js"></script>
+		<script src="../js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: '../plugin/markdown/marked.js' },
+					{ src: '../plugin/markdown/markdown.js' },
+					{ src: '../plugin/notes/notes.js', async: true },
+					{ src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
