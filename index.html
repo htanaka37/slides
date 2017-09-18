@@ -26,15 +26,198 @@
 			<div class="slides">
 				<section data-markdown data-separator="^\n---$" data-separator-vertical="^\n>>>$">
 					<script type="text/template">
-						### Terraform 使いません？？
-						~~ GUIでぽちぽちするのやめようぜ編 ~~
+						#### Infrastructure As Code(IAC)のススメ
+						
+						>>>
+						
+						
+						- <span class="fragment highlight-blue">vol1 Terraform 編</span>
+						- vol2 Ansible 編
+						- vol3 Git Bucket 編
+
+						---
+							
+						### Terraform とは
+						
+						>>>
+						HashiCorp社が作成したインフラ構築ツール(OSS)
+						- <span class="fragment highlight-blue">コードで記載された資源</span>をデプロイすることでクラウド上へサーバやネットワークが作成可能。
+						- <span class="fragment highlight-blue">複数のパブリッククラウド</span>に対応(AWS/GCP/Azure/Heroku/Docker)。
+						- <span class="fragment highlight-blue">"Accenture New IT"</span>でも紹介された、IaC関連のツールの一つ。
+						
+						>>>
+						![Diagram](images/IaC_Image.png)
+						
+						---
+						### 現行運用の問題
+
+						>>>
+						
+						###### GUI操作に依存した手順書はヤバイ 
+						- 人為的な操作に依るミスの増加。
+						- 本番作業の長時間化。
+						- 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
+						
+						>>>
+						
+						#### GUI操作に依存した手順書はヤバイ 続き
+						- GUI管理画面が頻繁にアップデートされるため、手順の流用が困難。
+						- 変更履歴を時系列順に追うのが困難。
+
+						---
+						
+						#### Terraformを用いてコードでデプロイを自動化しよう！！
+						
+						---
+						#### Terraformが解決する問題
+						
+						>>>
+						#### 人為的な操作に依るミスの増加
+						#### 本番作業の長時間化
+						- 画面操作不要。  
+						- コマンドラインでのコマンド実行のみのため作業時間は短い。
+						
+						~~~
+						$ terraform plan
+						$ terraform apply
+						$ terraform show
+						~~~
+						これだけ。
+						
+						>>>
+						##### 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
+						- コマンドライン上での実行履歴がそのままEvidence。
+						
+						>>>
+						##### GUI管理画面が頻繁にアップデートされるため、手順の流用が困難。
+						- コマンド実行のため、管理画面のアップデートに影響されない。
+						
+						>>>
+						#### 変更履歴を時系列順に追うのが困難。
+						- コードなので適切なツールを使えば変更履歴を追うのが非常に楽。「GIT」使おうぜ！
+						
+						---
+						#### Terraform利用の流れ
+						
+						>>>
+						1. 申請者(インフラorアプリチーム)がリソースをコード(.tf)で作成。
+						2. <span class="fragment">申請者がレビュー依頼(GITを用いたプルリクエストが望ましい)。</span>
+						3. <span class="fragment">レビュアー(インフラチーム)がレビュー。</span>
+						4. <span class="fragment">本番作業開始。リソース作成前に、planコマンドにてSyntaxチェック。</span>
+						5. <span class="fragment">applyコマンドにてリソース作成。</span>
+						6. <span class="fragment">showコマンドにより結果確認。</span>
+						7. <span class="fragment">作成した環境情報がファイル出力(.tfstate)</span>
+						
+						>>>
+						###### Deploy Diagram
+						![Diagram](images/TerraFormDiagram.png)
+						
+						---
+						
+						#### 作成するコードについて
+						
+						>>>
+						
+						### コード構文
+						
+						~~~
+						resource “<リソースの種類>” “<リソース名>” {
+							"<設定項目>" = "<設定値>"
+						}
+						~~~
+						
+						>>>
+						### Example
+						~~~
+						#####################################
+						# Build test Instance
+						#####################################
+						resource "aws_instance" "cm-test" {
+						    instance_type = "t2.micro"
+						    associate_public_ip_address = "true"
+						    root_block_device = {
+						      volume_type = "gp2"
+						      volume_size = "20"
+						    }
+						    ebs_block_device = {
+						      device_name = "/dev/sdf"
+						      volume_type = "gp2"
+						      volume_size = "100"
+						    }
+						}
+						~~~
+						
+						>>>
+						### デプロイ前のsyntaxチェック
+						
+						
+						~~~
+						$ terraform plan
+						 
+						Refreshing Terraform state in-memory prior to plan...
+						⋮
+						+ aws_instance.exampleInstance
+						    ami:                                               "ami-374db956"
+						    associate_public_ip_address:                       "true"
+						    ebs_block_device.#:                                "1"
+						    ebs_block_device.2659407853.delete_on_termination: "true"
+						    ebs_block_device.2659407853.device_name:           "/dev/sdf"
+						    ebs_block_device.2659407853.volume_size:           "100"
+						    ebs_block_device.2659407853.volume_type:           "gp2"
+						⋮
+						Plan: 7 to add, 0 to change, 0 to destroy.
+						~~~
+						
+						>>>
+						### デプロイ
+						
+						~~~
+						$ terraform apply
+						aws_vpc.myVPC: Creating...
+						  cidr_block:                "" => "10.1.0.0/16"
+						  default_network_acl_id:    "" => "<computed>"
+						  default_security_group_id: "" => "<computed>"
+						  dhcp_options_id:           "" => "<computed>"
+						 
+						...
+						 
+						Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
+						 
+						...
+							
+						~~~
+						
+						>>>
+						##### デプロイ後の確認
+						
+						~~~
+						$ terraform show
+						aws_instance.cm-test:
+						  id = i-e9860e1b
+						  ami = ami-cbf90ecb
+						  associate_public_ip_address = true
+						  availability_zone = ap-northeast-1a
+						 
+						...
+						 
+						Outputs:public ip of cm-test = 52.68.24.133
+						
+						~~~
+						
+						
+						---
+						### 最後に・・・
+
+						>>>
+						#### 二年前 とあるチーミでのプレゼン
+						岩田君「これからはAWSガンガン使う時代くるからみんな覚えておこうぜ！」  
+						メンバー「現クライアントは基本オンプレだからこんなん知っても意味なくね？」
+
+						#### これからドンドン使おうとしている。
 
 						---
 
-						### その前に・・・
-
-						>>>
-						「このスライドなんやねん、PPTちゃうんかい」
+						### このスライドについて
 
 						>>>
 						### Reveal.js
@@ -75,154 +258,13 @@
 						2. 取得した資源のindex.html内にMarkdown/htmlでスライドの内容記載
 						
 						---
-						### 現行運用の問題
-
-						>>>
-						
-						#### GUI操作に依存した手順書はヤバイ 
-						- 「画面をクリックして選択」という操作はオペミスが発生しやすい。
-						- 本番作業中に多くの操作が必要となるため、作業者及びクロスチェッカに大きな負担がかかる。当然作業量に比例して作業ミスの可能性も上がる。
-						- Evidence取得に大量の画面キャプチャを撮る必要があり、非常に非効率。
+						### 次回
 						
 						>>>
 						
-						#### GUI操作に依存した手順書はヤバイ 続き
-						- GUIがプロバイダ都合で頻繁にアップデートされるため、手順の流用が困難。レビュアー/レビュイーも毎回ログインして確認する必要がある。(AWS/Akamaiとか本当に多い)
-						- 変更履歴を時系列順に追うのが困難。
-						- 仮にオフショア使うってなったら「エクセルで手順作って」とかアウトソースできるのか。
-
-						---
-						
-						### Terraformを用いてコードでデプロイを自動化しよう！！
-						
-						---
-						### Terraform とは
-						
-						>>>
-						HashiCorp社が作成したインフラ構築ツール(OSS)
-						- コードで記載された資源をデプロイすることでサーバやネットワークが作成可能
-						- 複数のパブリッククラウドに対応(AWS/GCP/Azure/Heroku)
-						- "Accenture New IT"でも紹介された、所謂**infrastructure as code**というインフラをコードで管理しようっていう考えの下に生まれたツール
-
-						---
-						### Terraformがどう問題解決するか
-						
-						>>>
-						### 「画面をクリックして選択」という操作はオペミスが発生しやすい。
-						- 画面操作不要。コマンドラインでのコマンド実行のみ。
-						~~~
-						$ terraform apply
-						~~~
-						これだけ。
-						
-						>>>
-						##### 本番作業中に多くの操作が必要となるため、作業者及びクロスチェッカに大きな負担がかかる。当然作業量に比例して作業ミスの可能性も上がる。
-						- 事前に作成した設定ファイルを使用してコマンドを1回実行するだけで作業が完了する。
-						
-						>>>
-						### Evidence取得に大量の画面キャプチャを撮る必要があり、非常に非効率。
-						- コマンドライン上での実行履歴がそのままEvidence
-						- AWS上に作成されたリソースの設定内容を確認するコマンドもあり、作成後の確認はそれで補完。
-						
-						>>>
-						##### GUIがプロバイダ都合で頻繁にアップデートされるため、手順の流用が困難。レビュアー/レビュイーも毎回ログインして確認する必要がある。(AWS/Akamaiとか本当に多い)
-						- GUIがいくらアップデートされようが関係なし。但し、項目自体が追加された場合はterraform側もUpdateする必要がある・・・かも。
-						- コードの流用は非常に楽。変更内容に合わせてコードないに項目追加・削除すれば良い。
-						
-						>>>
-						### 変更履歴を時系列順に追うのが困難。
-						- コードなので適切なツールを使えば変更履歴を追うのが非常に楽。「GIT」使おうぜ！
-						
-						---
-						#### Terraform利用の流れ
-						
-						>>>
-						1. 申請者(インフラorアプリチーム)がリソースをコードで作成。
-						2. 申請者がレビュー依頼(GITを用いたプルリクエストが望ましい)。
-						3. レビュアー(インフラチーム)がレビュー。
-						4. 本番作業開始。リソース作成前に、planコマンドにてSyntaxチェック。
-						5. applyコマンドにてリソース作成。
-						
-						>>>
-						
-						### コード構文
-						
-						~~~
-						resource “<リソースの種類>” “<リソース名>” {
-							"<設定項目>" = "<設定値>"
-						}
-						~~~
-						
-						>>>
-						### Example
-						~~~
-						resource "aws_instance" "cm-test" {
-						    instance_type = "t2.micro"
-						    vpc_security_group_ids = [
-						      "${aws_security_group.admin.id}"
-						    ]
-						    subnet_id = "${aws_subnet.public-a.id}"
-						    associate_public_ip_address = "true"
-						    root_block_device = {
-						      volume_type = "gp2"
-						      volume_size = "20"
-						    }
-						    ebs_block_device = {
-						      device_name = "/dev/sdf"
-						      volume_type = "gp2"
-						      volume_size = "100"
-						    }
-						    tags {
-						        Name = "cm-test"
-						    }
-						}
-						
-						~~~
-						
-						>>>
-						### デプロイ前のsyntaxチェック
-						
-						
-						~~~
-						$ terraform plan
-						 
-						Refreshing Terraform state in-memory prior to plan...
-						⋮
-						+ aws_instance.exampleInstance
-						    ami:                                               "ami-374db956"
-						    associate_public_ip_address:                       "true"
-						    ebs_block_device.#:                                "1"
-						    ebs_block_device.2659407853.delete_on_termination: "true"
-						    ebs_block_device.2659407853.device_name:           "/dev/sdf"
-						    ebs_block_device.2659407853.volume_size:           "100"
-						    ebs_block_device.2659407853.volume_type:           "gp2"
-						⋮
-						Plan: 7 to add, 0 to change, 0 to destroy.
-						~~~
-						
-						※構文エラーやパラメータの正誤に関してはチェック可能であるが、対象のIDがAWS上にリソースとして存在するかどうかについてはチェック不可。
-						
-						>>>
-						
-
-						---
-						### 最後に・・・
-
-						>>>
-						「どーせこんなの使わないっしょ？？」  
-						と思ってるみなさん。
-
-						>>>
-						#### 二年前 とあるチーミでのプレゼン
-						岩田君「これからはAWSガンガン使う時代くるからみんな覚えておこうぜ！」  
-						メンバー「現クライアントは基本オンプレだからこんなん知っても意味なくね？」
-
-						#### これからドンドン使おうとしている。
-						
-						>>>
-						インフラエンジニアも
-
-
+						- vol1 Terraform 編
+						- <span class="fragment highlight-blue">vol2 Ansible 編</span>
+						- vol3 Git Bucket 編
 
 					</script>
 				</section>
