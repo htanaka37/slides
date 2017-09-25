@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="../css/reveal.css">
+		<link rel="stylesheet" href="../css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown data-separator="^\n---$" data-separator-vertical="^\n>>>$">
+					<script type="text/template">
+						#### Infrastructure As Code(IAC)のススメ
+						
+						>>>
+						
+						
+						- <span class="fragment highlight-blue">vol1 Git (Git Bucket) 編</span>
+						- vol2 Ansible 編
+						- vol3 Terraform 編
+
+						---
+						### 現行運用の問題点
+						
+						>>>
+						
+						
+						
+						---
+							
+						### Git とは
+						
+						>>>
+						<font size="5" >プログラム/ソースコードの変更履歴を記録・追跡する</font>  
+						分散型バージョン管理システム
+						
+						>>>
+						![Diagram](images/IaC_Image.png)
+						
+						---
+						### 現行運用の問題
+
+						>>>
+						
+						###### GUI操作に依存した手順書はヤバイ 
+						- 人為的な操作に依るミスの増加。
+						- 本番作業の長時間化。
+						- 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
+						
+						>>>
+						
+						#### GUI操作に依存した手順書はヤバイ 続き
+						- GUI管理画面が頻繁にアップデートされるため、手順の流用が困難。
+						- 変更履歴を時系列順に追うのが困難。
+
+						---
+						
+						#### Terraformを用いてコードでデプロイを自動化しよう！！
+						
+						---
+						#### Terraformが解決する問題
+						
+						>>>
+						#### 人為的な操作に依るミスの増加
+						#### 本番作業の長時間化
+						- 画面操作不要。  
+						- コマンドラインでのコマンド実行のみのため作業時間は短い。
+						
+						~~~
+						$ terraform plan
+						$ terraform apply
+						$ terraform show
+						~~~
+						これだけ。
+						
+						>>>
+						##### 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
+						- コマンドライン上での実行履歴がそのままEvidence。
+						
+						>>>
+						##### GUI管理画面が頻繁にアップデートされ、手順の流用が困難。
+						- コマンド実行のため、管理画面のアップデートに影響されない。
+						- 既存コードの仕様変更は原則発生しないため、コード流用が容易。
+						
+						>>>
+						#### 変更履歴を時系列順に追うのが困難。
+						- コードなので適切なツールを使えば変更履歴を追うのが非常に楽。「GIT」使おうぜ！
+						
+						---
+						#### Terraform利用の流れ
+						
+						>>>
+						1. 申請者(インフラorアプリチーム)がリソースをコード(.tf)で作成。
+						2. <span class="fragment">申請者がレビュー依頼(GITを用いたプルリクエストが望ましい)。</span>
+						3. <span class="fragment">レビュアー(インフラチーム)がレビュー。</span>
+						4. <span class="fragment">本番作業開始。リソース作成前に、planコマンドにてSyntaxチェック。</span>
+						5. <span class="fragment">applyコマンドにてリソース作成。</span>
+						6. <span class="fragment">showコマンドにより結果確認。</span>
+						7. <span class="fragment">作成した環境情報がファイル出力(.tfstate)</span>
+						
+						>>>
+						###### Deploy Diagram
+						![Diagram](images/TerraFormDiagram.png)
+						
+						---
+						
+						#### 作成するコードについて
+						
+						>>>
+						
+						### コード構文
+						
+						~~~
+						resource “<リソースの種類>” “<リソース名>” {
+							"<設定項目>" = "<設定値>"
+						}
+						~~~
+						
+						>>>
+						### Example
+						~~~
+						#####################################
+						# Build test Instance
+						#####################################
+						resource "aws_instance" "cm-test" {
+						    instance_type = "t2.micro"
+						    associate_public_ip_address = "true"
+						    root_block_device = {
+						      volume_type = "gp2"
+						      volume_size = "20"
+						    }
+						    ebs_block_device = {
+						      device_name = "/dev/sdf"
+						      volume_type = "gp2"
+						      volume_size = "100"
+						    }
+						}
+						~~~
+						
+						>>>
+						### デプロイ前のsyntaxチェック
+						
+						
+						~~~
+						$ terraform plan
+						 
+						Refreshing Terraform state in-memory prior to plan...
+						⋮
+						+ aws_instance.exampleInstance
+						    ami:                                               "ami-374db956"
+						    associate_public_ip_address:                       "true"
+						    ebs_block_device.#:                                "1"
+						    ebs_block_device.2659407853.delete_on_termination: "true"
+						    ebs_block_device.2659407853.device_name:           "/dev/sdf"
+						    ebs_block_device.2659407853.volume_size:           "100"
+						    ebs_block_device.2659407853.volume_type:           "gp2"
+						⋮
+						Plan: 7 to add, 0 to change, 0 to destroy.
+						~~~
+						
+						>>>
+						### デプロイ
+						
+						~~~
+						$ terraform apply
+						aws_vpc.myVPC: Creating...
+						  cidr_block:                "" => "10.1.0.0/16"
+						  default_network_acl_id:    "" => "<computed>"
+						  default_security_group_id: "" => "<computed>"
+						  dhcp_options_id:           "" => "<computed>"
+						 
+						...
+						 
+						Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
+						 
+						...
+							
+						~~~
+						
+						>>>
+						##### デプロイ後の確認
+						
+						~~~
+						$ terraform show
+						aws_instance.cm-test:
+						  id = i-e9860e1b
+						  ami = ami-cbf90ecb
+						  associate_public_ip_address = true
+						  availability_zone = ap-northeast-1a
+						 
+						...
+						 
+						Outputs:public ip of cm-test = 52.68.24.133
+						
+						~~~
+						
+						
+						---
+						### 最後に・・・
+
+						>>>
+						#### 二年前 とあるチーミでのプレゼン
+						岩田君「これからはAWSガンガン使う時代くるからみんな覚えておこうぜ！」  
+						メンバー「現クライアントは基本オンプレだからこんなん知っても意味なくね？」
+
+						#### これからドンドン使おうとしている。
+
+						---
+
+						### このスライドについて
+
+						>>>
+						### Reveal.js
+						- スライドを作成するためのフレームワーク  
+						- HTML/Markdownを利用して簡単かつ短時間でスライドが作成が可能
+						
+						##### Sample Code
+						~~~
+						# Hello!!
+						## Hello!!
+						- hello1
+						- hello2
+						- hello3
+
+
+						~~~
+
+						>>>
+						
+						# Hello!!
+						## Hello!!
+						- hello1
+						- hello2
+						- hello3
+
+						>>>
+
+						※当然、クライアントへ提出するのは難しいので　内部勉強会だったりで使ってみるとも良いかと。
+
+
+						>>>
+						### 利用方法
+						1. 資源取得
+						~~~
+						git clone https://github.com/hakimel/reveal.js.git
+						~~~
+
+						2. 取得した資源のindex.html内にMarkdown/htmlでスライドの内容記載
+						
+						---
+						### 次回
+						
+						>>>
+						
+						- vol1 Terraform 編
+						- <span class="fragment highlight-blue">vol2 Ansible 編</span>
+						- vol3 Git Bucket 編
+
+					</script>
+				</section>
+			</div>
+		</div>
+
+		<script src="../lib/js/head.min.js"></script>
+		<script src="../js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: '../plugin/markdown/marked.js' },
+					{ src: '../plugin/markdown/markdown.js' },
+					{ src: '../plugin/notes/notes.js', async: true },
+					{ src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
