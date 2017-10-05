@@ -30,17 +30,10 @@
 						
 						>>>
 						
-						
 						- <span class="fragment highlight-blue">vol1 Git (Git Bucket) 編</span>
 						- vol2 Ansible 編
 						- vol3 Terraform 編
 
-						---
-						### 現行運用の問題点
-						
-						>>>
-						
-						
 						
 						---
 							
@@ -51,164 +44,46 @@
 						分散型バージョン管理システム
 						
 						>>>
+						<font size="5" >分散型・集中型バージョン管理システムの違い</font>
 						![Diagram](images/IaC_Image.png)
 						
 						---
-						### 現行運用の問題
-
-						>>>
-						
-						###### GUI操作に依存した手順書はヤバイ 
-						- 人為的な操作に依るミスの増加。
-						- 本番作業の長時間化。
-						- 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
+						### 現行運用の問題点
 						
 						>>>
-						
-						#### GUI操作に依存した手順書はヤバイ 続き
-						- GUI管理画面が頻繁にアップデートされるため、手順の流用が困難。
-						- 変更履歴を時系列順に追うのが困難。
-
-						---
-						
-						#### Terraformを用いてコードでデプロイを自動化しよう！！
-						
-						---
-						#### Terraformが解決する問題
+						- 最新資源を取得するために本番環境に接続する必要がある。
+						- 古い資源の管理方法が不明。
+						- 誰がなんのために編集したかが不明。
+						- デグレの発生が本番作業時に発覚する。
 						
 						>>>
-						#### 人為的な操作に依るミスの増加
-						#### 本番作業の長時間化
-						- 画面操作不要。  
-						- コマンドラインでのコマンド実行のみのため作業時間は短い。
+						##### 最新資源を取得するために本番環境に接続する必要がある。
 						
-						~~~
-						$ terraform plan
-						$ terraform apply
-						$ terraform show
-						~~~
-						これだけ。
+						→最新版の資源を保持しているリモートリポジトリより資源を取得する。
 						
 						>>>
-						##### 画面キャプチャに依るEvidenceの大量取得が非常に煩雑。 
-						- コマンドライン上での実行履歴がそのままEvidence。
+						
+						##### 古い資源の管理方法が不明。
+						
+						→Gitがいい感じに自動管理してくれる。
 						
 						>>>
-						##### GUI管理画面が頻繁にアップデートされ、手順の流用が困難。
-						- コマンド実行のため、管理画面のアップデートに影響されない。
-						- 既存コードの仕様変更は原則発生しないため、コード流用が容易。
+						
+						##### 誰がなんのために編集したかが不明。
+						
+						→Commiterが誰なのかはすぐわかる
 						
 						>>>
-						#### 変更履歴を時系列順に追うのが困難。
-						- コードなので適切なツールを使えば変更履歴を追うのが非常に楽。「GIT」使おうぜ！
+						
+						##### デグレの発生が本番作業時に発覚する。
+						
+						→事前にCommitされた資源をデプロイするため、
 						
 						---
-						#### Terraform利用の流れ
-						
-						>>>
-						1. 申請者(インフラorアプリチーム)がリソースをコード(.tf)で作成。
-						2. <span class="fragment">申請者がレビュー依頼(GITを用いたプルリクエストが望ましい)。</span>
-						3. <span class="fragment">レビュアー(インフラチーム)がレビュー。</span>
-						4. <span class="fragment">本番作業開始。リソース作成前に、planコマンドにてSyntaxチェック。</span>
-						5. <span class="fragment">applyコマンドにてリソース作成。</span>
-						6. <span class="fragment">showコマンドにより結果確認。</span>
-						7. <span class="fragment">作成した環境情報がファイル出力(.tfstate)</span>
-						
-						>>>
-						###### Deploy Diagram
-						![Diagram](images/TerraFormDiagram.png)
-						
-						---
-						
-						#### 作成するコードについて
+						### Gitが解消する問題
 						
 						>>>
 						
-						### コード構文
-						
-						~~~
-						resource “<リソースの種類>” “<リソース名>” {
-							"<設定項目>" = "<設定値>"
-						}
-						~~~
-						
-						>>>
-						### Example
-						~~~
-						#####################################
-						# Build test Instance
-						#####################################
-						resource "aws_instance" "cm-test" {
-						    instance_type = "t2.micro"
-						    associate_public_ip_address = "true"
-						    root_block_device = {
-						      volume_type = "gp2"
-						      volume_size = "20"
-						    }
-						    ebs_block_device = {
-						      device_name = "/dev/sdf"
-						      volume_type = "gp2"
-						      volume_size = "100"
-						    }
-						}
-						~~~
-						
-						>>>
-						### デプロイ前のsyntaxチェック
-						
-						
-						~~~
-						$ terraform plan
-						 
-						Refreshing Terraform state in-memory prior to plan...
-						⋮
-						+ aws_instance.exampleInstance
-						    ami:                                               "ami-374db956"
-						    associate_public_ip_address:                       "true"
-						    ebs_block_device.#:                                "1"
-						    ebs_block_device.2659407853.delete_on_termination: "true"
-						    ebs_block_device.2659407853.device_name:           "/dev/sdf"
-						    ebs_block_device.2659407853.volume_size:           "100"
-						    ebs_block_device.2659407853.volume_type:           "gp2"
-						⋮
-						Plan: 7 to add, 0 to change, 0 to destroy.
-						~~~
-						
-						>>>
-						### デプロイ
-						
-						~~~
-						$ terraform apply
-						aws_vpc.myVPC: Creating...
-						  cidr_block:                "" => "10.1.0.0/16"
-						  default_network_acl_id:    "" => "<computed>"
-						  default_security_group_id: "" => "<computed>"
-						  dhcp_options_id:           "" => "<computed>"
-						 
-						...
-						 
-						Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
-						 
-						...
-							
-						~~~
-						
-						>>>
-						##### デプロイ後の確認
-						
-						~~~
-						$ terraform show
-						aws_instance.cm-test:
-						  id = i-e9860e1b
-						  ami = ami-cbf90ecb
-						  associate_public_ip_address = true
-						  availability_zone = ap-northeast-1a
-						 
-						...
-						 
-						Outputs:public ip of cm-test = 52.68.24.133
-						
-						~~~
 						
 						
 						---
