@@ -30,7 +30,7 @@
 						
 						>>>
 						
-						- <span class="fragment highlight-blue">vol1 Git (Git Bucket) & IaC 編</span>
+						- <span class="fragment highlight-blue">vol1 IaC & Git (Git Bucket)編</span>
 						- vol2 Ansible 編
 						- vol3 Terraform 編
 						
@@ -40,12 +40,32 @@
 						>>>
 						
 						- Infrastructure As Codeへの理解
-						- Gitの大体の雰囲気を掴んでもらう
+						- Gitへの理解(雰囲気つかめればok)
 						- Git運用に対するコンセンサスをとる(必須)
 						
 						---
 						
 						### Infrastructure As Code とは
+						
+						>>>
+						![Diagram](images/IaC.png)
+						
+						>>>
+						##### インフラストラクチャの構成をコード化する、  
+						##### コード化により利便性を向上させる技術の総称
+						
+						
+						>>>
+						##### Infrastructure As Codeのメリット
+						
+						- <font size="5" >自動オペレーションによる人的ミスの発生確率を低減、再現性の向上</font> 
+						- <font size="5" >自動オペレーションによる作業工数の低減</font>
+						- <font size="5" >コードの部品化による再利用性の向上</font>
+						- <font size="5" >サーバへの接続機会低減によるインシデント発生率の抑制</font>
+						- <font size="5" ><span class="fragment highlight-blue">アプリ開発におけるプラクティスの適用による生産性向上</span></font>
+						
+						>>>
+						![Diagram](images/IaC_Tools.png)
 						
 						
 						---
@@ -56,50 +76,41 @@
 						分散型バージョン管理システム
 						
 						>>>
-						<font size="5" >分散型・集中型バージョン管理システムの違い</font>
-						![Diagram](images/IaC_Image.png)
+						![Diagram](images/Git_SVN.png)
 						
 						---
 						### 現行運用の問題点
 						
 						>>>
-						- 各システムの資源(Script/Document)がどこに格納されてるか不明。
-						- 最悪、最新資源を取得するために本番環境に接続する必要がある。
-						- 古い資源の管理方法が不明。
-						- 誰がなんのために編集したかが不明。
-						- デグレの発生が本番作業時に発覚する可能性がある。
+						- <font size="5" >各システムの資源(Script/Document)がどこに格納されてるか不明。</font>
+						- <font size="5" >最悪、最新資源を取得するために本番環境に接続する必要がある。</font>
+						- <font size="5" >古い資源の管理方法が不明。</font>
+						- <font size="5" >誰がなんのために編集したかが不明。</font>
+						- <font size="5" >デグレの発生が本番作業時に発覚する可能性がある。</font>
+						
+						>>>
+						### Gitが解決してくれる問題点
+						
+						>>>
+						- <font size="5" >各システムの資源(Script/Document)がどこに格納されてるか不明。</font>
+						- <font size="5" >最悪、最新資源を取得するために本番環境に接続する必要がある。  
+							→ <span class="highlight-blue fragment">最新版の資源を保持しているリモートリポジトリより資源を取得可能。</span></font>
+						- <font size="5" >古い資源の管理方法が不明。  
+							→ <span class="highlight-blue fragment">Gitがいい感じに自動管理してくれる。</span></font>
+						- <font size="5" >誰がなんのために編集したかが不明。  
+							→ <span class="highlight-blue fragment">Commit時にコメント付与が可能であり、Committer情報も保持される</span></font>
+						- <font size="5" >デグレの発生が本番作業時に発覚する可能性がある。  
+							→ <span class="highlight-blue fragment">事前にCommitされた資源をデプロイするため、本番作業時のデグレが発覚しない</span></font>
 						
 						---
-						### Gitが解決してくれる事
+						##### Git(Git Bucket)利用イメージと必要なモノ
+						
+						>>>
+						![Diagram](images/Git_Image.png)
 						
 						>>>
 						
-						##### 最新資源を取得するために本番環境に接続する必要がある。
-						
-						→最新版の資源を保持しているリモートリポジトリより資源を取得可能。
-						
-						>>>
-						
-						##### 古い資源の管理方法が不明。
-						
-						→Gitがいい感じに自動管理してくれる。
-						
-						>>>
-						
-						##### 誰がなんのために編集したかが不明。
-						
-						→Commit時にコメント付与が可能であり、Committer情報も保持されるため、一目瞭然。
-						
-						>>>
-						
-						##### デグレの発生が本番作業時に発覚する。
-						
-						→事前にCommitされた資源をデプロイするため、本番作業時のデグレが発覚しない。
-						
-						---
-						##### Git(Git Bucket)導入に必要な事（モノ）
-						
-						>>>
+						### 必要な事(モノ)
 						
 						1. クライアントPCにGitをインストール (簡単)
 						1. Git(GitBucket)サーバを構築 (まぁ簡単)
@@ -107,21 +118,21 @@
 						1. Gitの利用方法を習得 (多分大変)
 						1. Git運用ルールの定着 (結構大変)
 						
+						
 						>>>
 						
 						田中と一木がやります！！！  
 						<font size="5" >※なので時間ください！！！！</font>
-						
+
 						---
-						### 最後に・・・
-
+						### おまけ ~今のGitbucket構成~
+						
 						>>>
-						#### 二年前 とあるチーミでのプレゼン
-						岩田君「これからはAWSガンガン使う時代くるからみんな覚えておこうぜ！」  
-						メンバー「現クライアントは基本オンプレだからこんなん知っても意味なくね？」
-
-						#### これからドンドン使おうとしている。
-
+						![Diagram](images/Gitbucket_image.png)
+						
+						>>>
+						##### Dockerのハンズオンやりたい人いたら勉強会するよ！
+						
 						---
 
 						### このスライドについて
@@ -169,9 +180,9 @@
 						
 						>>>
 						
-						- vol1 Terraform 編
+						- vol1 IaC & Git (Git Bucket)編
 						- <span class="fragment highlight-blue">vol2 Ansible 編</span>
-						- vol3 Git Bucket 編
+						- vol3 Terraform 編
 
 					</script>
 				</section>
